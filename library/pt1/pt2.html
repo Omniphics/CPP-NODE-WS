@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Learning Server-Client Setup</title>
+
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+  <!-- jQuery library -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  <!-- Popper JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+
+  <!-- Latest compiled JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+  <link rel="stylesheet" href="../../lightbox2-master/dist/css/lightbox.min.css">
+
+  <!-- Image resizing -->
+  <style>
+  img {
+    width: 50%;
+    height: auto;
+  }
+  </style>
+
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="container-fluid">
+
+    <!-- Navigation Bar -->
+    <h1>Server-Client Communication</h1>
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link" href="../../index.html">HOME</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">SERVER</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../../serverTutorial/pt1.html">Explanation</a>
+          <a class="dropdown-item" href="../../serverTutorial/pt2.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">CLIENT</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../../clientTutorial/pt1.html">Libraries</a>
+          <a class="dropdown-item" href="../../clientTutorial/pt2.html">Global Variables</a>
+          <a class="dropdown-item" href="../../clientTutorial/pt3.html">Functions</a>
+          <a class="dropdown-item" href="../../clientTutorial/pt4.html">Classes</a>
+          <a class="dropdown-item" href="../../clientTutorial/pt5.html">Main</a>
+          <a class="dropdown-item" href="../../clientTutorial/pt6.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="../../atom.html">Atom IDE</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">TLS CLIENT</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../../tlsTutorial/pt1.html">Walkthrough</a>
+          <a class="dropdown-item" href="../../tlsTutorial/pt2.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle active" data-toggle="dropdown" href="#">VS Library Usage</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../pt1/pt1.html">Zaphoyd Websocketpp</a>
+          <a class="dropdown-item" href="../pt2/pt1.html">Nlohmann JSON</a>
+        </div>
+      </li>
+    </ul>
+
+    <!-- Content -->
+    <h2>Zaphoyd Utlity Client Code Explanation</h2>
+
+    <h3>Setting Up Libraries and Shortcut Variables</h3>
+    <a class="example-image-link" href="../../images/pic17.png" data-lightbox="example-1" data-title="setup libraries and shortcut variables to be used"><img class="example-image" src="../../images/pic17.png" alt=""></a>
+    <p class="text-justify">
+      Similarly to <a href="pt1.html#setup">Zaphoyd Echo Code</a>, it will setup libraries and
+      shortcut variables to be used.
+    </p>
+
+    <h3>Class connection_metadata</h3>
+    <a class="example-image-link" href="../../images/pic18.png" data-lightbox="example-1" data-title="events is handle this class"><img class="example-image" src="../../images/pic18.png" alt=""></a>
+    <p class="text-justify">
+      Unlike the previous server-client communcation, events is handle within a
+      class called "connection_metadata" as shown above.
+
+      The highlighted section in the image are important code to handle events. The
+      functions within the class are equivalent to the code <a href="pt1.html#functions">previously</a>
+      which declares the appropriate action to deal with the event.
+    </p>
+
+    <p>
+      Whereas
+      <code>typedef websocketpp::lib::shared_ptr&ltconnection_metadata&gt ptr;</code>
+      is just a quality of life code to shorten the code.
+      <br>It is used in the "websocket_endpoint" class shown:
+
+      <a class="example-image-link" href="../../images/pic19.png" data-lightbox="example-1" data-title="quality of life code"><img class="example-image" src="../../images/pic19.png" alt=""></a>
+      <br>
+    </p>
+
+    <a class="example-image-link" href="../../images/pic20.png" data-lightbox="example-1" data-title="'get' function & private variables"><img class="example-image" src="../../images/pic20.png" alt=""></a>
+    <p class="text-justify">
+      Lastly, the class also contain private variables and few 'get' functions.
+      The highlighted section in the image is important to allow access to the class "websocket_endpoint"
+      to communicate with the server. The rest are additional features such as
+      showing details of the connection.
+    </p>
+
+    <h3>Class websocket_endpoint</h3>
+    <a class="example-image-link" href="../../images/pic21.png" data-lightbox="example-1" data-title="constructor of websocket_endpoint"><img class="example-image" src="../../images/pic21.png" alt=""></a>
+    <p class="text-justify">
+      Similarly to <a href="pt1.html#connection">previous setup</a>, instead of
+      initialising client directly, all clients are initialised in a class object
+      constructor. This is done as the program is used creating object of
+      "websocket_endpoint" class and setting up the client and running it, where
+      "m_endpoint" is the "client c". Additionally, "start_perpetual()" is added.
+      "m_thread" is a thread-call, where the function "c.run()" and an argument
+      "c" is passed.
+    </p>
+
+    <a class="example-image-link" href="../../images/pic22.png" data-lightbox="example-1" data-title="deconstructor of websocket_endpoint"><img class="example-image" src="../../images/pic22.png" alt=""></a>
+    <p class="text-justify">
+      The class, a deconstructor is created to close clients. Based on what is
+      required, most of the codes are not required as this is to deal with multiple
+      clients in one process.
+    </p>
+
+    <a class="example-image-link" href="../../images/pic23.png" data-lightbox="example-1" data-title="class functions to handle connection"><img class="example-image" src="../../images/pic23.png" alt=""></a>
+    <p class="text-justify">
+      Next function in the class is to handle the connection and event handlering.
+      Similarly from the previous setup, <code>con = m_endpoint.get_connection(uri, ec);</code>
+      and <code>con-&gtset_message_handler(bind(&ampon_message,&c, ::_1, ::_2))</code>
+      is equivalent in the image shown highlighted. The arrow pointing is alerting the variable
+      required to be there to declare the event handler. After handling the event,
+      insert <code>m_endpoint.connect(con)</code>.
+    </p>
+
+    <a class="example-image-link" href="../../images/pic24.png" data-lightbox="example-1" data-title="private variables of websocket_endpoint"><img class="example-image" src="../../images/pic24.png" alt=""></a>
+    <p class="text-justify">
+      The private variables are used to store important required to access clients-server
+      connection and running the connection.
+    </p>
+
+    <h3>Main Function</h3>
+    <a class="example-image-link" href="../../images/pic25.png" data-lightbox="example-1" data-title="main function"><img class="example-image" src="../../images/pic25.png" alt=""></a>
+    <p class="text-justify">
+      In the main function, the program does not have any client to connect to the
+      server. Initially, the user are required to input commands to create new
+      client to connect to the server and send message using specific client to the
+      server.
+    </p>
+    <p class="text-justify">And that's basically how the code works with minimal explaining.</p>
+    <ul class="pagination">
+      <li class="page-item"><a class="page-link" href="pt1.html">Previous</a></li>
+      <li class="page-item"><a class="page-link" href="pt1.html">1</a></li>
+      <li class="page-item active"><a class="page-link" href="pt2.html">2</a></li>
+      <li class="page-item disabled"><a class="page-link" href="pt2.html">Next</a></li>
+    </ul>
+    <!-- Content -->
+
+  </div>
+  <!-- Header -->
+
+  <!-- Footer -->
+  <footer class="page-footer font-small blue pt-4">
+
+    <!-- Footer Links -->
+    <div class="container-fluid text-center text-md-left">
+
+      <!-- Grid row -->
+      <div class="row">
+        <div class="col-sm-12"><p class="text-left">By: ChiggyXD</p></div>
+      </div>
+      <!-- Grid row -->
+
+    </div>
+    <!-- Footer Links -->
+
+    <!-- Copyright -->
+    <div class="footer-copyright text-center py-3">© 2018 Copyright:
+      <a href="#">PLACEHOLDER</a>
+    </div>
+    <!-- Copyright -->
+
+  </footer>
+  <!-- Footer -->
+
+
+  <script src="../../lightbox2-master/dist/js/lightbox-plus-jquery.min.js"></script>
+
+</body>
+</html>

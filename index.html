@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Learning Server-Client Setup</title>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+  <!-- jQuery library -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  <!-- Popper JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+
+  <!-- Latest compiled JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+  <link rel="stylesheet" href="lightbox2-master/dist/css/lightbox.min.css">
+
+  <!-- Image resizing -->
+  <style>
+  img {
+    width: 50%;
+    height: auto;
+  }
+  </style>
+
+</head>
+<body>
+  <div class="container-fluid">
+    <h1>Server-Client Communication</h1>
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" href="index.html">HOME</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">SERVER</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="serverTutorial/pt1.html">Explanation</a>
+          <a class="dropdown-item" href="serverTutorial/pt2.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">CLIENT</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="clientTutorial/pt1.html">Libraries</a>
+          <a class="dropdown-item" href="clientTutorial/pt2.html">Global Variables</a>
+          <a class="dropdown-item" href="clientTutorial/pt3.html">Functions</a>
+          <a class="dropdown-item" href="clientTutorial/pt4.html">Classes</a>
+          <a class="dropdown-item" href="clientTutorial/pt5.html">Main</a>
+          <a class="dropdown-item" href="clientTutorial/pt6.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="atom.html">Atom IDE</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">TLS CLIENT</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="tlsTutorial/pt1.html">Walkthrough</a>
+          <a class="dropdown-item" href="tlsTutorial/pt2.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">VS Library Usage</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="library/pt1/pt1.html">Zaphoyd Websocketpp</a>
+          <a class="dropdown-item" href="library/pt2/pt1.html">Nlohmann JSON</a>
+        </div>
+      </li>
+    </ul>
+
+    <!-- CONTENT -->
+    <div>
+      <p class="text-justify">Welcome! This is a walkthrough of the current setup for the server-client communication.
+        It is to showcase the <strong>basis</strong> of creating a server-client communication between a nodejs server and C++ client.
+      </p>
+      <p class="text-warning text-justify"><strong>Note:</strong> It is not an advanced guide and source code provided require JSON file to run! Please change accordingly!</b>
+      </p>
+    </div>
+
+    <div>
+      <h2>Getting Started!</h2>
+      <p class="text-justify">Before anything can be done, there are a few things you'll need to gather before the programming part. The most fundamental is
+        Visual Studio - to create and run the client, and Node.js with an IDE of your choosing (this walkthrough will be using Atom)
+        - to create and run the server. It will goes through the basic so skip to the step you're unfamiliar with.
+      </p>
+      <p class="text-justify">To go straight to coding section, navigate through the navigation bar at the top!
+      </p>
+    </div>
+
+    <div>
+      <h3>Table of Content</h3>
+      <div class="list-group">
+        <a href="#setupNode" class="list-group-item list-group-item-action">Setting Up Node.js</a>
+        <a href="#setupVS" class="list-group-item list-group-item-action">Setting Up Visual Studio</a>
+        <a href="#setupLIB" class="list-group-item list-group-item-action">Installing and Linking External Libraries</a>
+      </div>
+    </div>
+
+
+    <div id="setupNode">
+      <h4>Setting Up Node.js</h4>
+      <ol>
+        <li>Download and install Node.js from <a href="https://nodejs.org/en/download/">https://nodejs.org/en/download/</a></li>
+        <li>The installer will automatically configure your command prompt (adding to environment path, as shown below).
+          If not, manually navigate to environment path by Search &rarr; "Edit the system environment variables" &rarr;
+          "Environment Variables..." &rarr; "System Variables" &rarr; Double-Click "Path" &rarr;
+          "New" &rarr; Add the directory of Node.js</li>
+          <a class="example-image-link" href="images/pic10.png" data-lightbox="example-1" data-title="setting the environment path for node.js"><img class="example-image" src="images/pic10.png" alt=""></a>
+          <li>Test if Node.js is properly installed by running command prompt and typing "node -v". To run any javascript, navigate its directory and type "node filename.js" or "node filename"</li>
+          <li>Done! Next is to setup the required library for server-client communication over <a href="serverTutorial/pt1">here</a></li>
+        </ol>
+        <p class="text-info">Command Line Quick Guide:</p>
+        <ol>
+          <li>"cd pathname” change the current directory to target directory</li>
+          <li>“cd..” backspace current directory</li>
+          <li>"dir” view content of the current directory"</li>
+        </ol>
+      </div>
+
+      <div id="setupVS">
+        <h4>Setting Up Visual Studio</h4>
+        <ol>
+          <li>Download Visual Studio 2017 Community Version from <a href="https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=Community&rel=15">https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=Community&rel=15</a></li>
+          <li>Run the installer and under “Workloads”, select “Desktop development with C++” and click install</li>
+          <li>After installation, launch visual studio. Navigate from “File” &rarr; “New” &rarr; “Project” to create a new C++ program project</li>
+          <li>Under “Installed”, select “Empty Project”. If desired, change the “Name”, “Location” and “Solution name” and then clicked “OK”.</li>
+          <li>Under “Solution Explorer”, right-click and navigate “Add” &rarr; “New Item…” and select “C++ File (.cpp)” and change the “Name” if desired.</li>
+          <li>Done! You can start writing code. To setup libraries for server-client communication over <a href="clientTutorial/pt1">here</a>
+          </ol>
+        </div>
+
+        <div id="setupLIB">
+          <h4>Installing and Linking External Libraries</h4>
+
+          <div>
+            <h5>Node.js Libraries</h5>
+            <div class="list-group">
+              <a href="#setupWS" class="list-group-item list-group-item-action">WS Library</a>
+              <a href="#setupAtob" class="list-group-item list-group-item-action"><p class="text-info">OPTIONAL</p> Atob Library</a>
+              <a href="#setupBtoa" class="list-group-item list-group-item-action"><p class="text-info">OPTIONAL</p> Btoa Library</a>
+            </div>
+
+            <div id="setupWS">
+              <h6>WS Library - <a href="https://github.com/websockets/ws">https://github.com/websockets/ws</a></h6>
+              <ol>
+                <li>In command prompt, navigate to your working directory containing the javascript. Run “npm install --save ws” in the current working (where the js script reside) directory to install the library</li>
+                <li>In the script, add <code>const WebSocket = require(‘ws’);</code> and done! You can now use the library. For usage, look at the <a href="https://github.com/websockets/ws/blob/master/README.md">documentation</a></li>
+              </ol>
+            </div>
+
+            <div id="setupAtob">
+              <h6>Atob Library - <a href="https://www.npmjs.com/package/atob">https://www.npmjs.com/package/atob</a></h6>
+
+              <ol>
+                <li>In command prompt, navigate to your working directory containing the javascript. Run “npm install atob” in the current working (where the js script reside) directory to install the library</li>
+                <li>In the script, add <code>var atob = require('atob');</code> and done! You can now use the library. For usage, look at the <a href="https://www.npmjs.com/package/atob">documentation</a></li>
+              </ol>
+            </div>
+
+            <div id="setupBtoa">
+              <h6>Btoa Library - <a href="https://www.npmjs.com/package/btoa">https://www.npmjs.com/package/btoa</a></h6>
+
+              <ol>
+                <li>In command prompt, navigate to your working directory containing the javascript. Run “npm install btoa” in the current working (where the js script reside) directory to install the library</li>
+                <li>In the script, add <code>var btoa = require(‘btoa’);</code>  and done! You can now use the library. For usage, look at the <a href="https://www.npmjs.com/package/btoa">documentation</a></li>
+              </ol>
+            </div>
+          </div>
+
+
+          <div>
+            <h5>Visual Studio Libraries</h5>
+            <div class="list-group">
+              <a href="#setupCSCL" class="list-group-item list-group-item-action">Client-Server Communication Library</a>
+              <a href="#setupBL" class="list-group-item list-group-item-action">Boost Library</a>
+              <a href="#setupJL" class="list-group-item list-group-item-action">JSON Library</a>
+              <a href="#setupCBL" class="list-group-item list-group-item-action">Encoding/Decoding Base64 Library</a>
+            </div>
+
+            <div id="setupCSCL">
+
+              <h6>Client-Server Communication Library - <a href="https://github.com/zaphoyd/websocketpp">https://github.com/zaphoyd/websocketpp</a></h6>
+              <ol>
+                <li>Download the library from the <a href="https://github.com/zaphoyd/websocketpp">link</a> as zip or using GIT software (download from <a href="https://git-scm.com/downloads">https://git-scm.com/downloads)</a></li>
+                <a class="example-image-link" href="images/pic1.png" data-lightbox="example-1" data-title="location to download zip or get GIT uri"><img class="example-image" src="images/pic1.png" alt=""></a>
+                <li>Unzip the file and place it in an accessible directory</li>
+                <a class="example-image-link" href="images/pic2.png" data-lightbox="example-1" data-title="unzipping downloaded file"><img class="example-image" src="images/pic2.png" alt=""></a>
+                <li>Right-Click in “Solution Explorer” and select “Properties” or Under “Project” &rarr; “Properties”</li>
+                <a class="example-image-link" href="images/pic3.png" data-lightbox="example-1" data-title="navigation to project properties"><img class="example-image" src="images/pic3.png" alt=""></a>
+                <li>Under “C/C++” &rarr; “General” &rarr; “Additional Include Directories” and add the library file (called websocketcpp) by navigating to “/../websocketcpp”</li>
+                <a class="example-image-link" href="images/pic4.png" data-lightbox="example-1" data-title="setting up library link"><img class="example-image" src="images/pic4.png" alt=""></a>
+                <li id="setupBL">Download the boost library from <a href="https://www.boost.org/users/download/">https://www.boost.org/users/download/</a></li>
+                <a class="example-image-link" href="images/pic5.png" data-lightbox="example-1" data-title="download boost"><img class="example-image" src="images/pic5.png" alt=""></a>
+                <li>Unzip the file to an accessible directory then find and run bootstrap.bat then b2.exe and bjam.exe.</li>
+                <a class="example-image-link" href="images/pic6.png" data-lightbox="example-1" data-title="run bootstrap.bat then b2.exe then bjam.exe"><img class="example-image" src="images/pic6.png" alt=""></a>
+                <li>After completion, a file called “stage” will be generated. Go back to visual studio, “Project” &rarr; “Properties”, under “Linker” &rarr; “Additional Library Directories” and add the new file “/../stage/lib”. </li>
+                <a class="example-image-link" href="images/pic7.png" data-lightbox="example-1" data-title="setting boost library link"><img class="example-image" src="images/pic7.png" alt=""></a>
+                <li>Under “C/C++” &rarr; “General” &rarr; “Additional Include Directories” and also add the library file (default called boost_X_XX_X) by navigating to “/../boost_X_XX_X” </li>
+                <li>Done! Now the library can be used. Read up on this <a href="https://github.com/zaphoyd/websocketpp/blob/master/tutorials/utility_client/utility_client.md">documentation</a> about the usage as it's the foundation of the project</li>
+              </ol>
+            </div>
+
+            <div id="setupJL">
+              <h6>JSON Library - <a href="https://github.com/nlohmann/json">https://github.com/nlohmann/json</a></h6>
+              <ol>
+                <li>Download the library from the <a href="https://github.com/nlohmann/json">link</a> as zip or using GIT software (download from <a href="https://git-scm.com/downloads">https://git-scm.com/downloads)</a></li>
+                <li>Unzip the file and place it in an accessible directory</li>
+                <li>Right-Click in “Solution Explorer” and select “Properties” or Under “Project” &rarr; “Properties”</li>
+                <li>Under “C/C++” &rarr; “General” &rarr; “Additional Include Directories” and add the library file (called json) by navigating to “/../json/single_include”</li>
+                <li>Done! Now the library can be used. Read up on this <a href="https://github.com/nlohmann/json/blob/develop/README.md">documentation</a> about the usage as it's the foundation of the project</li>
+              </ol>
+            </div>
+
+
+            <div  id="setupCBL">
+              <h6>Encoding/Decoding Base64 Library - <a href="https://github.com/ReneNyffenegger/cpp-base64">https://github.com/ReneNyffenegger/cpp-base64</a></h6>
+              <ol>
+                <li>Download the library from the <a href="https://github.com/ReneNyffenegger/cpp-base64">link</a> as zip or using GIT software (download from <a href="https://git-scm.com/downloads">https://git-scm.com/downloads)</a></li>
+                <li>Unzip the file and place it in an accessible directory</li>
+                <li>Right-Click in “Solution Explorer” and select “Properties” or Under “Project” &rarr; “Properties”</li>
+                <li>Under “C/C++” &rarr; “General” &rarr; “Additional Include Directories” and add the library file (called cpp-base64) by navigating to “/../cpp-base64”. If it does not work, <a href="#base64">instruction here</a> to  add .h and .cpp file in “Solution Explorer”</li>
+                <li>Done! Now the library can be used. Read up on this <a href="https://renenyffenegger.ch/notes/development/Base64/Encoding-and-decoding-base-64-with-cpp">documentation</a> about the usage as it's the foundation of the project</li>
+              </ol>
+            </div>
+
+            <div>
+            <h6 id="base64">&ltbase64.h&gt not working! What to do next?</h6>
+            <p>The easiest solution is to manually add it like a normal header file!</p>
+            <ol>
+              <li>Add new item to your project OR copy and paste the base64.h and base64.cpp to your working directory (/projectname/projectname/) of your main.cpp</li>
+              <a class="example-image-link" href="images/pic8.png" data-lightbox="example-1" data-title="adding new item to project"><img class="example-image" src="images/pic8.png" alt=""></a>
+              <li>Add one .cpp and one .h file to your project</li>
+              <a class="example-image-link" href="images/pic9.png" data-lightbox="example-1" data-title="adding new .cpp and .h to project"><img class="example-image" src="images/pic9.png" alt=""></a>
+              <li>Open the download base64.h and base64.cpp file and copy and save in your project</li>
+              <li>Use "base64.h" instead of &ltbase64.h&gt and done! It should work.</li>
+            </ol>
+          </div>
+
+          </div>
+          <!-- CONTENT -->
+        </div>
+
+
+      </div>
+      <!-- Footer -->
+      <footer class="page-footer font-small blue pt-4">
+
+        <!-- Footer Links -->
+        <div class="container-fluid text-center text-md-left">
+
+          <!-- Grid row -->
+          <div class="row">
+            <div class="col-sm-12"><p class="text-left">By: ChiggyXD</p></div>
+          </div>
+          <!-- Grid row -->
+
+        </div>
+        <!-- Footer Links -->
+
+        <!-- Copyright -->
+        <div class="footer-copyright text-center py-3">© 2018 Copyright:
+          <a href="#">PLACEHOLDER</a>
+        </div>
+        <!-- Copyright -->
+
+      </footer>
+      <!-- Footer -->
+
+      <script src="lightbox2-master/dist/js/lightbox-plus-jquery.min.js"></script>
+
+    </body>
+    </html>

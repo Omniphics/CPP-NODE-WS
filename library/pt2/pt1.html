@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Learning Server-Client Setup</title>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+  <!-- jQuery library -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  <!-- Popper JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+
+  <!-- Latest compiled JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+  <link rel="stylesheet" href="../../lightbox2-master/dist/css/lightbox.min.css">
+
+  <!-- Image resizing -->
+  <style>
+  img {
+    width: 50%;
+    height: auto;
+  }
+  </style>
+
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="container-fluid">
+    <h1>Server-Client Communication</h1>
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link" href="../../index.html">HOME</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">SERVER</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../../serverTutorial/pt1.html">Explanation</a>
+          <a class="dropdown-item" href="../../serverTutorial/pt2.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">CLIENT</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../../clientTutorial/pt1.html">Libraries</a>
+          <a class="dropdown-item" href="../../clientTutorial/pt2.html">Global Variables</a>
+          <a class="dropdown-item" href="../../clientTutorial/pt3.html">Functions</a>
+          <a class="dropdown-item" href="../../clientTutorial/pt4.html">Classes</a>
+          <a class="dropdown-item" href="../../clientTutorial/pt5.html">Main</a>
+          <a class="dropdown-item" href="../../clientTutorial/pt6.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="../../atom.html">Atom IDE</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">TLS CLIENT</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../../tlsTutorial/pt1.html">Walkthrough</a>
+          <a class="dropdown-item" href="../../tlsTutorial/pt2.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle active" data-toggle="dropdown" href="#">VS Library Usage</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../pt1/pt1.html">Zaphoyd Websocketpp</a>
+          <a class="dropdown-item" href="../pt2/pt1.html">Nlohmann JSON</a>
+        </div>
+      </li>
+    </ul>
+
+    <!-- Content -->
+    <h2>Nlohmann Code Explanation</h2>
+    <h3  id="setup">Setting Up Libraries and Shortcut Variables</h3>
+    <a class="example-image-link" href="../../images/pic26.png" data-lightbox="example-1" data-title="initial setup of code for library usage"><img class="example-image" src="../../images/pic26.png" alt=""></a>
+    <p>
+      To start using Nlohmann json library, the <a href="../../index.html#setupJL">linking</a>
+      should be done before any coding can be done. Afterward, a simple #include
+      and shortcut variable are use for convenience.
+    </p>
+
+    <h3 id="reading">Reading JSON File</h3>
+    <!-- <a class="example-image-link" href="../../images/pic14.png" data-lightbox="example-1" data-title="creating on-event handler with function"><img class="example-image" src="../../images/pic14.png" alt=""></a> -->
+    <p>
+      To start reading any file, basic <code>#include &ltfstream&gt</code> must
+      be used before any processing. This is the fundamental from C++ library for
+      reading and writing file.
+      To open a file to read:
+      <br><br>
+      <code>std::ifstream variableName("filepath");</code>
+      <br><br>
+      If the file is available, the variableName will contain all the text in json string format.
+      As such, the next step is to parse the text to the json library to handle the conversion:
+      <br><br>
+      <code>json variableName2 = json::parse(variableName);</code>
+      <br><br>
+      And done! variableName2 now contains the text in json format.
+      To access each individual elements:
+      <br><code>variableName2["/parentName/"].get&lttype&gt();</code>
+      <br><code>variableName2["/parentName/childName/"_json_pointer].get&lttype&gt();</code>
+      <br><br>
+      And that's how you read a json file and access the element!
+    </p>
+
+
+    <h3>Writing JSON File</h3>
+    <!-- <a class="example-image-link" href="../../images/pic15.png" data-lightbox="example-1" data-title="setting up address to connect"><img class="example-image" src="../../images/pic15.png" alt=""></a> -->
+    <p>
+      Similarly, the <code>#include &ltfstream&gt</code> must be added to handle writing file.
+      Before writing into the file, a json text has to be created:
+      <br><br>
+      <code>json variableName;</code>
+      <br><br>
+      Add the elements you want:
+      <br><br>
+      <code>variableName["parentName1"] = value1;</code>
+      <code>variableName["/parentName2/childName1/"_json_pointer] = value2;</code>
+      <br><br>
+      Of course you can just parse a string in json format directly but it is a bit messy:
+      <br><br>
+      <code>json variableName = json::parse("{
+        <br>\"parentName1\" : \"childName1\" ,
+        <br>\"parentName2\" : \"childName2\" ,
+        <br>\"parentName3\" : {
+          <br>\"childName3\":\"grandchildrenName3\"}}");
+        </code>
+        <br><br>
+
+        After creating the json, open the json file:
+        <br><br>
+        <code>std::ofstream variableName2("filepath");</code>
+        <br><br>
+        To save it into the file:
+        <br><br>
+        <code>variableName2 << variableName;</code>
+        <br><br>
+        And done! Just close your file:
+        <br><br>
+        <code>variableName2.close();</code>
+      </p>
+
+      <h3>Convert JSON Format to String Format</h3>
+      <p>
+        Assuming you have a <code>json variableName</code> filled with json elements,
+        to grab everything in a string format just use:
+        <br><br>
+        <code>std::string s = variableName.dump(4);</code> where the value in
+        the bracket is just indentation size.
+      </p>
+
+      <!--
+      <h3 id="connection">Connecting to Server</h3>
+      <a class="example-image-link" href="../../images/pic16.png" data-lightbox="example-1" data-title="connecting to server and configuring on-Event"><img class="example-image" src="../../images/pic16.png" alt=""></a>
+      <p>
+      The initial step of setting the client is tweaking the channel. Not really
+      sure how this work as it is not important in my case. "init_asio" is important
+      as it allows the "audio stream input/output". Next is handling events - implementing
+      corresponding functions to deal with the event, this case on_message event.
+      "set_message_handler(bind(&on_message,*c;::_1,::_2))" is calling a bind function,
+      similar to thread class - variableName (function, function_arg..., ). With on_message
+      having 3 arguments, 3 inputs are used: *c, ::_1 and ::_2, where *c is the "client"
+      object and the last two is typedef created in the beginning to grab the hdl
+      and message of the server, respectively. Afterward, retrieving server connection
+      detail through con = c.get_connection(uri, ec), ec is for error alert as
+      seen next. To connect and run, c.connect(con) and c.run(), respectively.
+    </p>
+    <p>This is the most basic of setting up client connection with limited event handling. For more advanced example, read <a href="pt2.html">Zaphoyd Ulitity Client Code Explanation</a>.</p> -->
+    <!-- Content -->
+
+  </div>
+  <!-- Header -->
+
+  <!-- Footer -->
+  <footer class="page-footer font-small blue pt-4">
+
+    <!-- Footer Links -->
+    <div class="container-fluid text-center text-md-left">
+
+      <!-- Grid row -->
+      <div class="row">
+        <div class="col-sm-12"><p class="text-left">By: ChiggyXD</p></div>
+      </div>
+      <!-- Grid row -->
+
+    </div>
+    <!-- Footer Links -->
+
+    <!-- Copyright -->
+    <div class="footer-copyright text-center py-3">© 2018 Copyright:
+      <a href="#">PLACEHOLDER</a>
+    </div>
+    <!-- Copyright -->
+
+  </footer>
+  <!-- Footer -->
+
+
+  <script src="../../lightbox2-master/dist/js/lightbox-plus-jquery.min.js"></script>
+
+</body>
+</html>

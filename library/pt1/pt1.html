@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Learning Server-Client Setup</title>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+  <!-- jQuery library -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  <!-- Popper JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+
+  <!-- Latest compiled JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+  <link rel="stylesheet" href="../../lightbox2-master/dist/css/lightbox.min.css">
+
+  <!-- Image resizing -->
+  <style>
+  img {
+    width: 50%;
+    height: auto;
+  }
+  </style>
+
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="container-fluid">
+    <h1>Server-Client Communication</h1>
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link" href="../../index.html">HOME</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">SERVER</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../../serverTutorial/pt1.html">Explanation</a>
+          <a class="dropdown-item" href="../../serverTutorial/pt2.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">CLIENT</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../../clientTutorial/pt1.html">Libraries</a>
+          <a class="dropdown-item" href="../../clientTutorial/pt2.html">Global Variables</a>
+          <a class="dropdown-item" href="../../clientTutorial/pt3.html">Functions</a>
+          <a class="dropdown-item" href="../../clientTutorial/pt4.html">Classes</a>
+          <a class="dropdown-item" href="../../clientTutorial/pt5.html">Main</a>
+          <a class="dropdown-item" href="../../clientTutorial/pt6.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="../../atom.html">Atom IDE</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">TLS CLIENT</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../../tlsTutorial/pt1.html">Walkthrough</a>
+          <a class="dropdown-item" href="../../tlsTutorial/pt2.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle active" data-toggle="dropdown" href="#">VS Library Usage</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../pt1/pt1.html">Zaphoyd Websocketpp</a>
+          <a class="dropdown-item" href="../pt2/pt1.html">Nlohmann JSON</a>
+        </div>
+      </li>
+    </ul>
+
+    <!-- Content -->
+    <h2>Zaphoyd Echo Client Code Explanation</h2>
+    <h3  id="setup">Setting Up Libraries and Shortcut Variables</h3>
+    <a class="example-image-link" href="../../images/pic13.png" data-lightbox="example-1" data-title="setup libraries and shortcut variables to be used"><img class="example-image" src="../../images/pic13.png" alt=""></a>
+    <p>
+      In this section of code, it is the initial setup of libraries and variables
+      and or defined type they are going to used later on. Most definition and
+      variables are not neccesary if you're will-verse with the library implementation.
+      It is mainly for convenience use - to reduce the amount of work to access.
+      Compuslory code are the #include section to allow the usage of the library.
+    </p>
+    <h3 id="functions">On-Event Function</h3>
+    <a class="example-image-link" href="../../images/pic14.png" data-lightbox="example-1" data-title="creating on-event handler with function"><img class="example-image" src="../../images/pic14.png" alt=""></a>
+    <p>
+      This functions control what the program do when the client connect to the
+      server. In this case, the coder have created a on_message event where the message
+      is echoed back (reply with the same message) to the server. If there are other
+      events used to be handled, user can create their own functions and implement it.
+      Remember this is declaring how the client should handle the event but it has
+      not be implemented!
+    </p>
+    <h3>Setting to Server's Address</h3>
+    <a class="example-image-link" href="../../images/pic15.png" data-lightbox="example-1" data-title="setting up address to connect"><img class="example-image" src="../../images/pic15.png" alt=""></a>
+    <p>
+      Above shows the initial of the main functions. The program allows the user
+      to run it with arguments - in this case, waiting for user input of an URI.
+      If there is no argument, the program will default an URI - "ws://localhost:9002".
+      As explained previously, in non-TLS client, the URI is "ws://localhost:portnumber".
+      In this section, it also create an "client" object to connect with the server.
+    </p>
+    <h3 id="connection">Connecting to Server</h3>
+    <a class="example-image-link" href="../../images/pic16.png" data-lightbox="example-1" data-title="connecting to server and configuring on-Event"><img class="example-image" src="../../images/pic16.png" alt=""></a>
+    <p>
+      The initial step of setting the client is tweaking the channel. Not really
+      sure how this work as it is not important in my case. "init_asio" is important
+      as it allows the "audio stream input/output". Next is handling events - implementing
+      corresponding functions to deal with the event, this case on_message event.
+      "set_message_handler(bind(&on_message,*c;::_1,::_2))" is calling a bind function,
+      similar to thread class - variableName (function, function_arg..., ). With on_message
+      having 3 arguments, 3 inputs are used: *c, ::_1 and ::_2, where *c is the "client"
+      object and the last two is typedef created in the beginning to grab the hdl
+      and message of the server, respectively. Afterward, retrieving server connection
+      detail through con = c.get_connection(uri, ec), ec is for error alert as
+      seen next. To connect and run, c.connect(con) and c.run(), respectively.
+    </p>
+    <p>This is the most basic of setting up client connection with limited event handling. For more advanced example, read <a href="pt2.html">Zaphoyd Ulitity Client Code Explanation</a>.</p>
+    <ul class="pagination">
+      <li class="page-item disabled"><a class="page-link" href="pt1.html">Previous</a></li>
+      <li class="page-item active"><a class="page-link" href="pt1.html">1</a></li>
+      <li class="page-item"><a class="page-link" href="pt2.html">2</a></li>
+      <li class="page-item"><a class="page-link" href="pt2.html">Next</a></li>
+    </ul>
+    <!-- Content -->
+
+  </div>
+  <!-- Header -->
+
+  <!-- Footer -->
+  <footer class="page-footer font-small blue pt-4">
+
+    <!-- Footer Links -->
+    <div class="container-fluid text-center text-md-left">
+
+      <!-- Grid row -->
+      <div class="row">
+        <div class="col-sm-12"><p class="text-left">By: ChiggyXD</p></div>
+      </div>
+      <!-- Grid row -->
+
+    </div>
+    <!-- Footer Links -->
+
+    <!-- Copyright -->
+    <div class="footer-copyright text-center py-3">© 2018 Copyright:
+      <a href="#">PLACEHOLDER</a>
+    </div>
+    <!-- Copyright -->
+
+  </footer>
+  <!-- Footer -->
+
+
+  <script src="../../lightbox2-master/dist/js/lightbox-plus-jquery.min.js"></script>
+
+</body>
+</html>

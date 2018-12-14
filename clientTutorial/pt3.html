@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Learning Server-Client Setup</title>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+  <!-- jQuery library -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  <!-- Popper JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+
+  <!-- Latest compiled JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+</head>
+<body>
+  <div class="container-fluid">
+    <h1>Server-Client Communication</h1>
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link" href="../index.html">HOME</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">SERVER</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../serverTutorial/pt1.html">Explanation</a>
+          <a class="dropdown-item" href="../serverTutorial/pt2.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle active" data-toggle="dropdown" href="#">CLIENT</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../clientTutorial/pt1.html">Libraries</a>
+          <a class="dropdown-item" href="../clientTutorial/pt2.html">Global Variables</a>
+          <a class="dropdown-item" href="../clientTutorial/pt3.html">Functions</a>
+          <a class="dropdown-item" href="../clientTutorial/pt4.html">Classes</a>
+          <a class="dropdown-item" href="../clientTutorial/pt5.html">Main</a>
+          <a class="dropdown-item" href="../clientTutorial/pt6.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="../atom.html">Atom IDE</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">TLS CLIENT</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../tlsTutorial/pt1.html">Walkthrough</a>
+          <a class="dropdown-item" href="../tlsTutorial/pt2.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">VS Library Usage</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../library/pt1/pt1.html">Zaphoyd Websocketpp</a>
+          <a class="dropdown-item" href="../library/pt2/pt1.html">Nlohmann JSON</a>
+        </div>
+      </li>
+    </ul>
+
+    <!-- CONTENT -->
+    <h2>C++ Client <small>pt3</small></h2>
+    <h3>Setting functions</h3>
+
+    <h4>Loading Json File and Other Settings</h4>
+    <div>
+      <h5>Example</h5>
+      <code>
+        <pre>
+          bool loadJsonAndSetting() {
+
+            // predetermined json file or can be loaded in by user input
+            std::ifstream ifs("setting.json");
+            if (ifs.is_open()) {
+
+              // use json library to extract data
+              json setting = json::parse(ifs);
+              uri = setting["/websocket/server"_json_pointer].get&ltstd::string&gt();
+
+              // loading ping configuration from json file
+              m_pingTimer.interval = setting["/ping/interval"_json_pointer];
+              m_pingTimer.logFile = setting["/ping/file"_json_pointer].get&ltstd::string&gt();
+              m_pingTimer.PING_LIMIT = setting["/ping/limit"_json_pointer];
+
+              // console message
+              std::cout &lt&lt "connecting to server: " &lt&lt uri &lt&lt std::endl;
+              std::cout &lt&lt "set ping interval: " &lt&lt m_pingTimer.interval &lt&lt std::endl;;
+              std::cout &lt&lt "set ping limit: " &lt&lt m_pingTimer.PING_LIMIT &lt&lt std::endl;
+              std::cout &lt&lt "set ping log file: " &lt&lt m_pingTimer.logFile &lt&lt std::endl;
+
+              ifs.close();
+
+              // load for time usage
+              y2k.tm_hour = 0;   y2k.tm_min = 0; y2k.tm_sec = 0;
+              y2k.tm_year = 100; y2k.tm_mon = 0; y2k.tm_mday = 1;
+              return true;
+            }
+            else {
+              std::cout &lt&lt "unable to load setting" &lt&lt std::endl;
+              ifs.close();
+              return false;
+            }
+          }
+        </pre>
+      </code>
+      <p>In this function, the json library is used. To understand more of the usage please refer to its
+        <a href="https://github.com/nlohmann/json/blob/develop/README.md">documentation</a>.
+        Quick explanation: The function is just loading a predetermined json file to be loaded into the program.
+        Some other configurations are done, such as time, to use it later on in the program</p>
+    </div>
+
+    <h4>Client Sending Message to Server</h4>
+    <div>
+      <h5>Example</h5>
+      <code>
+        <pre>
+          bool sendMessage(client * c, websocketpp::connection_hdl m_hdl, std::string message, std::string action) {
+
+            // client proceed to send the action and message
+            websocketpp::lib::error_code ec; // logging error message
+
+            // action handler
+            if (action == "PING") // main action to handle server-client ping pong, where client have to ping in an interval
+            {
+
+              // retrieving time
+              time(&timer);  /* get current time; same as: timer = time(NULL)  */
+
+              // record last pinged time for interval ping
+              m_pingTimer.latestPing = difftime(timer, mktime(&y2k));
+
+              // sends a ping to the server with client id
+              c-&gtping(m_hdl, std::to_string(m_connection.id), ec);
+              std::cout &lt&lt "&lt&lt PING" &lt&lt std::endl;
+              return true;
+            }
+
+            // additional else if could be added for specific action such as 'broadcast', 'message', etc
+            // ...
+            // ...
+            else {
+
+              // basic message handler - encoding with base64 and sending the message.
+              // remember that message is usually in (string)json format. you can ONLY send string to server
+              message = base64_encode(reinterpret_cast&ltconst unsigned char*&gt(message.c_str()), message.length());
+              c-&gtsend(m_hdl, message, websocketpp::frame::opcode::text, ec);
+              std::cout &lt&lt "&lt&lt " &lt&lt action &lt&lt std::endl;
+              return true;
+            }
+            if (ec) {
+
+              // alert user there is an error - mainly to handle user input action
+              std::cout &lt&lt "&gt&gt Error sending message: " &lt&lt ec.message() &lt&lt std::endl;
+            }
+            return false;
+          }
+        </pre>
+      </code>
+      <p>This function allows client to send message in a standard format. Based on different action, different message can be send such as
+      broadcast, message, etc. As such, user have to manually add else if statement based on the desired effect. <br>
+      <b>Remember: message is required to be in string format of a json</b></p>
+      </div>
+
+      <h4>Client Pinging to Server</h4>
+      <div>
+        <h5>Example</h5>
+        <code>
+          <pre>
+            void pingingStart(client *c, websocketpp::connection_hdl m_hdl) {
+
+              // constantly run but with a time trigger
+              while (true) {
+
+                // only ping if the client is registered and is confirmed by the server - happens during on_message and on_open
+                if (m_connection.registered) {
+
+                  // already set to true at the top of the program in the configuration
+                  while (m_pingTimer.enabled) {
+
+                    // retrieving time
+                    time(&timer);
+
+                    // time trigger event
+                    if (difftime(timer, mktime(&y2k)) - m_pingTimer.latestPing &gt m_pingTimer.interval) {
+
+                      // load and read json for ping message - CAUTION: ping message have character limit
+                      std::ifstream jsonFile("setting2.json");
+                      auto json = json::parse(jsonFile);
+                      auto jsonMessage = json::parse("{ \"action\": \"PING\", \"channel\": \"socketChannel\", \"type\": \"clientType\", \"message\": {\"export_data\": \"" + json["export_data"].get<std::string>() + "\", \"system\":\"something\"}, \"hd_id\": 2, \"timestamp\": \"11110\"}");
+                      std::string s = jsonMessage.dump(4);
+
+                      // sending ping and recording time sent
+                      sendMessage(c, m_hdl, s, "PING"); // currently ping is sending client id
+                      m_pingTimer.PING_COUNT++;
+
+                      // if received no pong after the limit, quit
+                      if (m_pingTimer.PING_COUNT &gt m_pingTimer.PING_LIMIT) {
+                        std::string placeholder;
+                        std::cout &lt&lt "&gt&gt client is disconnected... press enter to quit" &lt&lt std::endl;
+                        getline(std::cin, placeholder);
+                        exit(0);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          </pre>
+        </code>
+        <p>This function allows client to send message in a standard format. Based on different action, different message can be send such as
+        broadcast, message, etc. As such, user have to manually add else if statement based on the desired effect.</p>
+        <p class="text-warning"><strong>Remember: </strong>message is required to be in string format of a json</p>
+        </div>
+
+    <h4>Current Code</h4>
+    <div>
+      <code>
+
+      <pre>
+        #include &ltwebsocketpp/config/asio_no_tls_clients.hpp&gt
+        #include &ltwebsocketpp/client.hpp&gt
+
+        typedef websocketpp::client&ltwebsocketpp::config::asio_client&gt client;
+
+        #include &ltnlohmann/json.hpp&gt
+
+        using json = nlohmann::json;
+
+        #include "base64.h"
+
+        #include &iostream&gt
+        #include &ctime&gt
+        #include &fstream&gt
+        #include &cmath&gt
+        #include &stdlib.h&gt
+        #include &thread&gt
+
+        time_t timer;
+        struct tm ltm;
+        struct tm y2k = { 0 };
+        std::string uri;
+
+        struct Connection
+        {
+          int id;
+          bool registered = false;
+        }m_connection;
+
+        struct pingTimer {
+          int id;
+          bool enabled = true;
+          int latestPing = 0;
+          int PING_COUNT = 0;
+          int interval = 5;
+          int PING_LIMIT = 5;
+          std::string logFile = "PingPongLog.txt";
+        }m_pingTimer;
+
+        bool loadJsonAndSetting() {
+
+          // predetermined json file or can be loaded in by user input
+          std::ifstream ifs("setting.json");
+          if (ifs.is_open()) {
+
+            // use json library to extract data
+            json setting = json::parse(ifs);
+            uri = setting["/websocket/server"_json_pointer].get&ltstd::string&gt();
+
+            // loading ping configuration from json file
+            m_pingTimer.interval = setting["/ping/interval"_json_pointer];
+            m_pingTimer.logFile = setting["/ping/file"_json_pointer].get&ltstd::string&gt();
+            m_pingTimer.PING_LIMIT = setting["/ping/limit"_json_pointer];
+
+            // console message
+            std::cout &lt&lt "connecting to server: " &lt&lt uri &lt&lt std::endl;
+            std::cout &lt&lt "set ping interval: " &lt&lt m_pingTimer.interval &lt&lt std::endl;;
+            std::cout &lt&lt "set ping limit: " &lt&lt m_pingTimer.PING_LIMIT &lt&lt std::endl;
+            std::cout &lt&lt "set ping log file: " &lt&lt m_pingTimer.logFile &lt&lt std::endl;
+
+            ifs.close();
+
+            // load for time usage
+            y2k.tm_hour = 0;   y2k.tm_min = 0; y2k.tm_sec = 0;
+            y2k.tm_year = 100; y2k.tm_mon = 0; y2k.tm_mday = 1;
+            return true;
+          }
+          else {
+            std::cout &lt&lt "unable to load setting" &lt&lt std::endl;
+            ifs.close();
+            return false;
+          }
+        }
+
+        bool sendMessage(client * c, websocketpp::connection_hdl m_hdl, std::string message, std::string action) {
+
+          // client proceed to send the action and message
+          websocketpp::lib::error_code ec; // logging error message
+
+          // action handler
+          if (action == "PING") // main action to handle server-client ping pong, where client have to ping in an interval
+          {
+
+            // retrieving time
+            time(&timer);  /* get current time; same as: timer = time(NULL)  */
+
+            // record last pinged time for interval ping
+            m_pingTimer.latestPing = difftime(timer, mktime(&y2k));
+
+            // sends a ping to the server with client id
+            c-&gtping(m_hdl, std::to_string(m_connection.id), ec);
+            std::cout &lt&lt "&lt&lt PING" &lt&lt std::endl;
+            return true;
+          }
+
+          // additional else if could be added for specific action such as 'broadcast', 'message', etc
+          // ...
+          // ...
+          else {
+
+            // basic message handler - encoding with base64 and sending the message.
+            // remember that message is usually in (string)json format. you can ONLY send string to server
+            message = base64_encode(reinterpret_cast&ltconst unsigned char*&gt(message.c_str()), message.length());
+            c-&gtsend(m_hdl, message, websocketpp::frame::opcode::text, ec);
+            std::cout &lt&lt "&lt&lt " &lt&lt action &lt&lt std::endl;
+            return true;
+          }
+          if (ec) {
+
+            // alert user there is an error - mainly to handle user input action
+            std::cout &lt&lt "&gt&gt Error sending message: " &lt&lt ec.message() &lt&lt std::endl;
+          }
+          return false;
+        }
+
+        void pingingStart(client *c, websocketpp::connection_hdl m_hdl) {
+
+          // constantly run but with a time trigger
+          while (true) {
+
+            // only ping if the client is registered and is confirmed by the server - happens during on_message and on_open
+            if (m_connection.registered) {
+
+              // already set to true at the top of the program in the configuration
+              while (m_pingTimer.enabled) {
+
+                // retrieving time
+                time(&timer);
+
+                // time trigger event
+                if (difftime(timer, mktime(&y2k)) - m_pingTimer.latestPing &gt m_pingTimer.interval) {
+
+                  // load and read json for ping message - CAUTION: ping message have character limit
+                  std::ifstream jsonFile("setting2.json");
+                  auto json = json::parse(jsonFile);
+                  auto jsonMessage = json::parse("{ \"action\": \"PING\", \"channel\": \"socketChannel\", \"type\": \"clientType\", \"message\": {\"export_data\": \"" + json["export_data"].get<std::string>() + "\", \"system\":\"something\"}, \"hd_id\": 2, \"timestamp\": \"11110\"}");
+                  std::string s = jsonMessage.dump(4);
+
+                  // sending ping and recording time sent
+                  sendMessage(c, m_hdl, s, "PING"); // currently ping is sending client id
+                  m_pingTimer.PING_COUNT++;
+
+                  // if received no pong after the limit, quit
+                  if (m_pingTimer.PING_COUNT &gt m_pingTimer.PING_LIMIT) {
+                    std::string placeholder;
+                    std::cout &lt&lt "&gt&gt client is disconnected... press enter to quit" &lt&lt std::endl;
+                    getline(std::cin, placeholder);
+                    exit(0);
+                  }
+                }
+              }
+            }
+          }
+        }
+      </pre>
+    </code>
+
+    </div>
+
+    <!-- CONTENT -->
+
+
+  </div>
+  <!-- Footer -->
+  <footer class="page-footer font-small blue pt-4">
+
+    <!-- Footer Links -->
+    <div class="container-fluid text-center text-md-left">
+
+      <!-- Grid row -->
+      <div class="row">
+        <div class="col-sm-12"><p class="text-left">By: Chiggy XD</p></div>
+      </div>
+      <!-- Grid row -->
+
+    </div>
+    <!-- Footer Links -->
+
+    <!-- Copyright -->
+    <div class="footer-copyright text-center py-3">© 2018 Copyright:
+      <a href="#">PLACEHOLDER</a>
+    </div>
+    <!-- Copyright -->
+
+  </footer>
+  <!-- Footer -->
+
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Learning Server-Client Setup</title>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+  <!-- jQuery library -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  <!-- Popper JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+
+  <!-- Latest compiled JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+</head>
+<body>
+  <div class="container-fluid">
+    <h1>Server-Client Communication</h1>
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link" href="../index.html">HOME</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">SERVER</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../serverTutorial/pt1.html">Explanation</a>
+          <a class="dropdown-item" href="../serverTutorial/pt2.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle active" data-toggle="dropdown" href="#">CLIENT</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../clientTutorial/pt1.html">Libraries</a>
+          <a class="dropdown-item" href="../clientTutorial/pt2.html">Global Variables</a>
+          <a class="dropdown-item" href="../clientTutorial/pt3.html">Functions</a>
+          <a class="dropdown-item" href="../clientTutorial/pt4.html">Classes</a>
+          <a class="dropdown-item" href="../clientTutorial/pt5.html">Main</a>
+          <a class="dropdown-item" href="../clientTutorial/pt6.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="../atom.html">Atom IDE</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">TLS CLIENT</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../tlsTutorial/pt1.html">Walkthrough</a>
+          <a class="dropdown-item" href="../tlsTutorial/pt2.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">VS Library Usage</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../library/pt1/pt1.html">Zaphoyd Websocketpp</a>
+          <a class="dropdown-item" href="../library/pt2/pt1.html">Nlohmann JSON</a>
+        </div>
+      </li>
+    </ul>
+
+    <!-- CONTENT -->
+    <h2>C++ Client <small>pt1</small></h2>
+    <h3>Including External Libraries</h3>
+
+    <h4>Server-Client Communication</h4>
+    <div>
+      <h5>Example</h5>
+      <code>
+        <pre>
+          #include &ltwebsocketpp/config/asio_no_tls_clients.hpp&gt
+          #include &ltwebsocketpp/client.hpp&gt
+
+          typedef websocketpp::client&ltwebsocketpp::config::asio_client&gt client;
+        </pre>
+      </code>
+      <p>These variables is to handle time and the address of the server which is called through the program. Based on your own usage, it can be tweaked but "uri" is important to connect to the server!</p>
+    </div>
+
+    <h4>JSON File Handling</h4>
+    <div>
+      <h5>Example</h5>
+      <code>
+        <pre>
+          #include &ltnlohmann/json.hpp&gt
+
+          using json = nlohmann::json;
+        </pre>
+      </code>
+    </div>
+
+    <h4>Encoding and Decoding in base64</h4>
+    <div>
+      <h5>Example</h5>
+      <code>
+        <pre>
+          #include "base64.h"
+        </pre>
+      </code>
+      <p class="text-warning"><strong>Note: </strong>Depending on how you include the external library it can be <a href="../index.html#base64">"base64.h" or &ltbase64.h&gt</a></p>
+    </div>
+
+    <h4>Standard Libraries</h4>
+    <div>
+      <h5>Example</h5>
+      <code>
+        <pre>
+          #include &iostream&gt
+          #include &ctime&gt
+          #include &fstream&gt
+          #include &cmath&gt
+          #include &stdlib.h&gt
+          #include &thread&gt
+        </pre>
+      </code>
+    </div>
+
+
+    <h4>Current Code</h4>
+    <div>
+      <code>
+        <pre>
+          #include &ltwebsocketpp/config/asio_no_tls_clients.hpp&gt
+          #include &ltwebsocketpp/client.hpp&gt
+
+          typedef websocketpp::client&ltwebsocketpp::config::asio_client&gt client;
+
+          #include &ltnlohmann/json.hpp&gt
+
+          using json = nlohmann::json;
+
+          #include "base64.h"
+
+          #include &iostream&gt
+          #include &ctime&gt
+          #include &fstream&gt
+          #include &cmath&gt
+          #include &stdlib.h&gt
+          #include &thread&gt
+        </pre>
+      </code>
+
+    </div>
+
+    <!-- CONTENT -->
+
+  </div>
+  <!-- Footer -->
+  <footer class="page-footer font-small blue pt-4">
+
+    <!-- Footer Links -->
+    <div class="container-fluid text-center text-md-left">
+
+      <!-- Grid row -->
+      <div class="row">
+        <div class="col-sm-12"><p class="text-left">By: Chiggy XD</p></div>
+      </div>
+      <!-- Grid row -->
+
+    </div>
+    <!-- Footer Links -->
+
+    <!-- Copyright -->
+    <div class="footer-copyright text-center py-3">© 2018 Copyright:
+      <a href="#">PLACEHOLDER</a>
+    </div>
+    <!-- Copyright -->
+
+  </footer>
+  <!-- Footer -->
+
+</body>
+</html>

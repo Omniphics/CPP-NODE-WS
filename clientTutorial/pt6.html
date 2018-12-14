@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+</head>
+<body>
+  <pre>
+    <code>
+      /*
+      * Copyright (c) 2016, Peter Thorson. All rights reserved.
+      *
+      * Redistribution and use in source and binary forms, with or without
+      * modification, are permitted provided that the following conditions are met:
+      *     * Redistributions of source code must retain the above copyright
+      *       notice, this list of conditions and the following disclaimer.
+      *     * Redistributions in binary form must reproduce the above copyright
+      *       notice, this list of conditions and the following disclaimer in the
+      *       documentation and/or other materials provided with the distribution.
+      *     * Neither the name of the WebSocket++ Project nor the
+      *       names of its contributors may be used to endorse or promote products
+      *       derived from this software without specific prior written permission.
+      *
+      * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+      * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+      * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+      * ARE DISCLAIMED. IN NO EVENT SHALL PETER THORSON BE LIABLE FOR ANY
+      * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+      * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+      * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+      * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+      * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+      * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+      *
+      */
+
+      #include &ltwebsocketpp/config/asio_no_tls_clients.hpp&gt
+      #include &ltwebsocketpp/client.hpp&gt
+
+      typedef websocketpp::client&ltwebsocketpp::config::asio_client&gt client;
+
+      #include &ltnlohmann/json.hpp&gt
+
+      using json = nlohmann::json;
+
+      #include "base64.h"
+
+      #include &iostream&gt
+      #include &ctime&gt
+      #include &fstream&gt
+      #include &cmath&gt
+      #include &stdlib.h&gt
+      #include &thread&gt
+
+      time_t timer;
+      struct tm ltm;
+      struct tm y2k = { 0 };
+      std::string uri;
+
+      struct Connection
+      {
+        int id;
+        bool registered = false;
+      }m_connection;
+
+      struct pingTimer {
+        int id;
+        bool enabled = true;
+        int latestPing = 0;
+        int PING_COUNT = 0;
+        int interval = 5;
+        int PING_LIMIT = 5;
+        std::string logFile = "PingPongLog.txt";
+      }m_pingTimer;
+
+      bool loadJsonAndSetting() {
+
+        // predetermined json file or can be loaded in by user input
+        std::ifstream ifs("setting.json");
+        if (ifs.is_open()) {
+
+          // use json library to extract data
+          json setting = json::parse(ifs);
+          uri = setting["/websocket/server"_json_pointer].get&ltstd::string&gt();
+
+          // loading ping configuration from json file
+          m_pingTimer.interval = setting["/ping/interval"_json_pointer];
+          m_pingTimer.logFile = setting["/ping/file"_json_pointer].get&ltstd::string&gt();
+          m_pingTimer.PING_LIMIT = setting["/ping/limit"_json_pointer];
+
+          // console message
+          std::cout &lt&lt "connecting to server: " &lt&lt uri &lt&lt std::endl;
+          std::cout &lt&lt "set ping interval: " &lt&lt m_pingTimer.interval &lt&lt std::endl;;
+          std::cout &lt&lt "set ping limit: " &lt&lt m_pingTimer.PING_LIMIT &lt&lt std::endl;
+          std::cout &lt&lt "set ping log file: " &lt&lt m_pingTimer.logFile &lt&lt std::endl;
+
+          ifs.close();
+
+          // load for time usage
+          y2k.tm_hour = 0;   y2k.tm_min = 0; y2k.tm_sec = 0;
+          y2k.tm_year = 100; y2k.tm_mon = 0; y2k.tm_mday = 1;
+          return true;
+        }
+        else {
+          std::cout &lt&lt "unable to load setting" &lt&lt std::endl;
+          ifs.close();
+          return false;
+        }
+      }
+
+      bool sendMessage(client * c, websocketpp::connection_hdl m_hdl, std::string message, std::string action) {
+
+        // client proceed to send the action and message
+        websocketpp::lib::error_code ec; // logging error message
+
+        // action handler
+        if (action == "PING") // main action to handle server-client ping pong, where client have to ping in an interval
+        {
+
+          // retrieving time
+          time(&timer);  /* get current time; same as: timer = time(NULL)  */
+
+          // record last pinged time for interval ping
+          m_pingTimer.latestPing = difftime(timer, mktime(&y2k));
+
+          // sends a ping to the server with client id
+          c-&gtping(m_hdl, std::to_string(m_connection.id), ec);
+          std::cout &lt&lt "&lt&lt PING" &lt&lt std::endl;
+          return true;
+        }
+
+        // additional else if could be added for specific action such as 'broadcast', 'message', etc
+        // ...
+        // ...
+        else {
+
+          // basic message handler - encoding with base64 and sending the message.
+          // remember that message is usually in (string)json format. you can ONLY send string to server
+          message = base64_encode(reinterpret_cast&ltconst unsigned char*&gt(message.c_str()), message.length());
+          c-&gtsend(m_hdl, message, websocketpp::frame::opcode::text, ec);
+          std::cout &lt&lt "&lt&lt " &lt&lt action &lt&lt std::endl;
+          return true;
+        }
+        if (ec) {
+
+          // alert user there is an error - mainly to handle user input action
+          std::cout &lt&lt "&gt&gt Error sending message: " &lt&lt ec.message() &lt&lt std::endl;
+        }
+        return false;
+      }
+
+      void pingingStart(client *c, websocketpp::connection_hdl m_hdl) {
+
+        // constantly run but with a time trigger
+        while (true) {
+
+          // only ping if the client is registered and is confirmed by the server - happens during on_message and on_open
+          if (m_connection.registered) {
+
+            // already set to true at the top of the program in the configuration
+            while (m_pingTimer.enabled) {
+
+              // retrieving time
+              time(&timer);
+
+              // time trigger event
+              if (difftime(timer, mktime(&y2k)) - m_pingTimer.latestPing &gt m_pingTimer.interval) {
+
+                // load and read json for ping message - CAUTION: ping message have character limit
+                std::ifstream jsonFile("setting2.json");
+                auto json = json::parse(jsonFile);
+                auto jsonMessage = json::parse("{ \"action\": \"PING\", \"channel\": \"socketChannel\", \"type\": \"clientType\", \"message\": {\"export_data\": \"" + json["export_data"].get<std::string>() + "\", \"system\":\"something\"}, \"hd_id\": 2, \"timestamp\": \"11110\"}");
+                std::string s = jsonMessage.dump(4);
+
+                // sending ping and recording time sent
+                sendMessage(c, m_hdl, s, "PING"); // currently ping is sending client id
+                m_pingTimer.PING_COUNT++;
+
+                // if received no pong after the limit, quit
+                if (m_pingTimer.PING_COUNT &gt m_pingTimer.PING_LIMIT) {
+                  std::string placeholder;
+                  std::cout &lt&lt "&gt&gt client is disconnected... press enter to quit" &lt&lt std::endl;
+                  getline(std::cin, placeholder);
+                  exit(0);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      class connection_metadata {
+        public:
+        typedef websocketpp::lib::shared_ptr&ltconnection_metadata&gt ptr;
+
+        connection_metadata(websocketpp::connection_hdl hdl, std::string uri)
+        : m_hdl(hdl)
+        , m_uri(uri)
+        {}
+
+        // --------------------------------------- on open event handler ---------------------------------------
+        void on_open(client * c, websocketpp::connection_hdl hdl) {
+
+          // console message
+          std::cout &lt&lt "&gt&gt you have connected to the server..." &lt&lt std::endl;
+          std::cout &lt&lt "&lt&lt sending registration to server..." &lt&lt std::endl;
+
+          // --------------------------------------- creating message to send to server ---------------------------------------
+          // generating registration in json style - could generate in string instead if desired
+          auto registrationInfo = json::parse("{ \"action\": \"REGISTER\", \"channel\": \"socketChannel\", \"type\": \"clientType\", \"message\": \"this is a register message.\", \"hw_id\": 2}");
+          // encode registration
+          std::string encodedMessage = base64_encode(reinterpret_cast&ltconst unsigned char*&gt(registrationInfo.dump(4).c_str()), registrationInfo.dump(4).length());
+          // generating registration part 2 in json style
+          auto payload = json::parse("{\"hardwareId\": 2, \"message\": \"" + encodedMessage + "\"}");
+
+          // sending payload in string format!!! important
+          websocketpp::lib::error_code ec;
+          c-&gtsend(m_hdl, payload.dump(4), websocketpp::frame::opcode::text, ec);
+          // error checking communicaton
+          if (ec) {
+            std::cout &lt&lt "&gt&gt Error sending message: " &lt&lt ec.message() &lt&lt std::endl;
+          }
+        }
+
+        // --------------------------------------- ping pong handler ---------------------------------------
+        // client ping and waits for pong - use to verify connection
+        void on_pong(client *c, websocketpp::connection_hdl hdl) {
+          // retrieve timestamp
+          time_t now = time(0);
+          localtime_s(&ltm, &now);
+          std::string timestamp = std::to_string(ltm.tm_hour) + ":" + std::to_string(ltm.tm_min) + ":" + std::to_string(ltm.tm_sec) + "\n";
+
+          // record timestamp in local text file
+          std::ofstream writeLogFile(m_pingTimer.logFile, std::ios_base::app);
+          if (writeLogFile.is_open()) {
+            writeLogFile &lt&lt timestamp;
+          }
+          else {
+            std::cout &lt&lt "&gt&gtunable to log to file" &lt&lt std::endl;
+          }
+          writeLogFile.close();
+
+          // console message
+          std::cout &lt&lt "&gt&gt incoming pong... ";
+
+          // retrieve time
+          time(&timer);  /* get current time; same as: timer = time(NULL)  */
+
+          // receive time and record how long it took
+          int tripTime = difftime(timer, mktime(&y2k)) - m_pingTimer.latestPing; // just as holder
+
+          // display record
+          std::cout &lt&lt tripTime &lt&lt "ms taken" &lt&lt std::endl;
+
+          // reset ping count
+          m_pingTimer.PING_COUNT = 0;
+        }
+        // server ping and wait for client pong - not neccesary unless message desired. client will AUTOMATICALLY PONG back to server
+        bool on_ping(client *c, websocketpp::connection_hdl hdl) {
+          // retrieve timestamp
+          time_t now = time(0);
+          localtime_s(&ltm, &now);
+          std::string timestamp = std::to_string(ltm.tm_hour) + ":" + std::to_string(ltm.tm_min) + ":" + std::to_string(ltm.tm_sec) + "\n";
+
+          // console message
+          std::cout &lt&lt "&gt&gt incoming ping... on " &lt&lt timestamp;
+          std::cout &lt&lt "\t&lt&lt pong" &lt&lt std::endl;
+
+          // sending pong
+          websocketpp::lib::error_code ec; // error
+          c-&gtpong(m_hdl, std::to_string(m_connection.id), ec);
+          if (ec) {
+            std::cout &lt&lt "&gt&gt error sending message: " &lt&lt ec.message() &lt&lt std::endl;
+            return true;
+          }
+          return false;
+        }
+
+        // handles server action messages
+        bool on_message(client *c, websocketpp::connection_hdl hdl, client::message_ptr msg) {
+          std::cout &lt&lt "&gt&gt incoming message: " &lt&lt msg-&gtget_payload() &lt&lt std::endl;
+          // doing registration first before handling any action
+          if (!m_connection.registered) {
+            std::string decoded = base64_decode(msg-&gtget_payload());
+            std::cout &lt&lt "\t&gt&gt decoded message: " &lt&lt decoded &lt&lt std::endl;
+
+            // converting to json to grab info
+            auto jsonMsg = json::parse(decoded);
+            m_connection.id = jsonMsg["id"];
+
+
+            srand(time(NULL));
+            m_pingTimer.id = std::floor((std::rand() * 100) + 1);
+
+            // console message
+            std::cout &lt&lt "\t&gt&gt register " &lt&lt m_connection.registered &lt&lt " " &lt&lt m_connection.id &lt&lt std::endl;
+            std::cout &lt&lt "\t&gt&gt socket ping-pong initialized at " &lt&lt m_pingTimer.interval &lt&lt "s intervals. -&gt " &lt&lt m_pingTimer.id &lt&lt std::endl;
+            std::cout &lt&lt "&gt&gt User Input Available - proceed to type commands" &lt&lt std::endl;
+
+            // start pinging
+            m_connection.registered = true;
+            return true;
+          }
+          else {
+            // always decode message as message are always encoded by the server
+            std::string decoded = base64_decode(msg-&gtget_raw_payload());
+            // convert to json format to be used
+            auto jsonMsg = json::parse(decoded);
+            if (jsonMsg["action"].get&ltstd::string&gt() == "EXIT") {
+              std::cout &lt&lt "\t&gt&gt EXIT userID: " &lt&lt jsonMsg["id"] &lt&lt std::endl;
+            }
+            else if (jsonMsg["action"].get&ltstd::string&gt() == "NEW") {
+              std::cout &lt&lt "\t&gt&gt NEW userID: " &lt&lt jsonMsg["id"] &lt&lt std::endl;
+            }
+            // additional else if can be added to deal with more specific action just like in sendMessage function
+            // ...
+            // ...
+            else {
+              std::cout &lt&lt "\t&gt&gt UNKNOWN ACTION: " &lt&lt jsonMsg["action"] &lt&lt std::endl;
+            }
+          }
+          return false;
+        }
+
+        // not really used as abrupt closing, etc will be handled by the server appropriately
+        void on_fail(client * c, websocketpp::connection_hdl hdl) {
+
+          client::connection_ptr con = c-&gtget_con_from_hdl(hdl);
+          m_error_reason = con-&gtget_ec().message();
+
+          // error message here
+          std::cout &lt&lt m_error_reason &lt&lt std::endl;
+        }
+        void on_close(client * c, websocketpp::connection_hdl hdl) {
+          client::connection_ptr con = c-&gtget_con_from_hdl(hdl);
+          std::stringstream s;
+          s &lt&lt "close code: " &lt&lt con-&gtget_remote_close_code() &lt&lt " ("
+          &lt&lt websocketpp::close::status::get_string(con-&gtget_remote_close_code())
+          &lt&lt "), close reason: " &lt&lt con-&gtget_remote_close_reason();
+          m_error_reason = s.str();
+        }
+
+
+        websocketpp::connection_hdl get_hdl() const {
+          return m_hdl;
+        }
+
+        private:
+        websocketpp::connection_hdl m_hdl;
+        std::string m_uri;
+        std::string m_error_reason;
+        std::vector&ltstd::string&gt m_messages;
+      };
+
+      class websocket_endpoint {
+        public:
+        websocket_endpoint()
+        {
+          m_client.clear_access_channels(websocketpp::log::alevel::all);
+          m_client.clear_error_channels(websocketpp::log::elevel::all);
+
+          m_client.init_asio();
+          m_client.start_perpetual();
+
+          m_thread = websocketpp::lib::make_shared&ltwebsocketpp::lib::thread&gt(&client::run, &m_client);
+        }
+        bool connect(std::string serverURI)
+        {
+          // try connecting to server
+          websocketpp::lib::error_code ec;
+          client::connection_ptr con = m_client.get_connection(serverURI, ec);
+          if (ec)
+          {
+            std::cout &lt&lt "&gt&gt Connect initialization error: " &lt&lt ec.message() &lt&lt std::endl;
+            return false;
+          }
+
+          // event handler
+          metadata_ptr = websocketpp::lib::make_shared&ltconnection_metadata&gt(con-&gtget_handle(), uri);
+          con-&gtset_open_handler(websocketpp::lib::bind(
+          &connection_metadata::on_open,
+          metadata_ptr,
+          &m_client,
+          websocketpp::lib::placeholders::_1
+          ));
+          con-&gtset_fail_handler(websocketpp::lib::bind(
+          &connection_metadata::on_fail,
+          metadata_ptr,
+          &m_client,
+          websocketpp::lib::placeholders::_1
+          ));
+          con-&gtset_close_handler(websocketpp::lib::bind(
+          &connection_metadata::on_close,
+          metadata_ptr,
+          &m_client,
+          websocketpp::lib::placeholders::_1
+          ));
+          con-&gtset_message_handler(websocketpp::lib::bind(
+          &connection_metadata::on_message,
+          metadata_ptr,
+          &m_client,
+          websocketpp::lib::placeholders::_1,
+          websocketpp::lib::placeholders::_2
+          ));
+          // ping-pong handler
+          con-&gtset_pong_handler(websocketpp::lib::bind(
+          &connection_metadata::on_pong,
+          metadata_ptr,
+          &m_client,
+          websocketpp::lib::placeholders::_1
+          ));
+          con-&gtset_ping_handler(websocketpp::lib::bind(
+          &connection_metadata::on_ping,
+          metadata_ptr,
+          &m_client,
+          websocketpp::lib::placeholders::_1
+          ));
+          m_client.connect(con);
+
+          // start pinging
+          std::thread pinging(pingingStart, &m_client, metadata_ptr-&gtget_hdl());
+
+          // allow user input
+          while (true) {
+            std::string input;
+            getline(std::cin, input);
+            std::cout &lt&lt input &lt&lt std::endl;
+          }
+        }
+        ~websocket_endpoint()
+        {
+          m_client.stop_perpetual();
+          m_thread-&gtjoin();
+        }
+        private:
+        client m_client;
+        websocketpp::lib::shared_ptr&ltwebsocketpp::lib::thread&gt m_thread;
+        connection_metadata::ptr metadata_ptr;
+      };
+
+      int main(int argc, char* argv[]) {
+
+        // opening and retrieving json setting and other
+        loadJsonAndSetting();
+
+        //// not neccessary unless desired - mainly used for chat server, etc. Currently not being used, just a placeholder
+        //std::string handle;
+        //std::cout &lt&lt "please enter your prefer name..." &lt&lt std::endl;
+        //getline(std::cin, handle);
+
+        websocket_endpoint endpoint;
+        endpoint.connect(uri);
+        return 0;
+      }
+    }</code></pre>
+  </body>
+  </html>

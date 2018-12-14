@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Learning Server-Client Setup</title>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+  <!-- jQuery library -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  <!-- Popper JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+
+  <!-- Latest compiled JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+  <link rel="stylesheet" href="../lightbox2-master/dist/css/lightbox.min.css">
+
+  <!-- Image resizing -->
+  <style>
+  img {
+    width: 50%;
+    height: auto;
+  }
+  </style>
+
+</head>
+<body>
+  <div class="container-fluid">
+    <h1>Server-Client Communication</h1>
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link" href="../index.html">HOME</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">SERVER</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../serverTutorial/pt1.html">Explanation</a>
+          <a class="dropdown-item" href="../serverTutorial/pt2.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">CLIENT</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../clientTutorial/pt1.html">Libraries</a>
+          <a class="dropdown-item" href="../clientTutorial/pt2.html">Global Variables</a>
+          <a class="dropdown-item" href="../clientTutorial/pt3.html">Functions</a>
+          <a class="dropdown-item" href="../clientTutorial/pt4.html">Classes</a>
+          <a class="dropdown-item" href="../clientTutorial/pt5.html">Main</a>
+          <a class="dropdown-item" href="../clientTutorial/pt6.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="../atom.html">Atom IDE</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle active" data-toggle="dropdown" href="#">TLS CLIENT</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../tlsTutorial/pt1.html">Walkthrough</a>
+          <a class="dropdown-item" href="../tlsTutorial/pt2.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">VS Library Usage</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../library/pt1/pt1.html">Zaphoyd Websocketpp</a>
+          <a class="dropdown-item" href="../library/pt2/pt1.html">Nlohmann JSON</a>
+        </div>
+      </li>
+    </ul>
+
+    <!-- CONTENT -->
+    <div>
+      <p class="text-justify">This walkthrough will explain how to create a TLS client from previous code.
+      </p>
+    </div>
+
+    <div>
+      <h2>Before Getting Started!</h2>
+      <p class="text-justify">Before going through this walkthrough, reading the basic introduction would be recommended
+        as it is built ontop of it. Not much will be changed as it mainly handle how to CONNECT to the server. All other event
+        handling is the SAME.
+      </p>
+    </div>
+
+    <div>
+      <h3>Table of Content</h3>
+      <div class="list-group">
+        <a href="#downloadLibrary" class="list-group-item list-group-item-action">Download Library</a>
+        <a href="#linkLibrary" class="list-group-item list-group-item-action">Linking Library to Visual Studio</a>
+        <a href="#changeCode" class="list-group-item list-group-item-action">Changes to Code</a>
+        <a href="#how2connect" class="list-group-item list-group-item-action">How to Connect to Server</a>
+        <a href="#onEvent" class="list-group-item list-group-item-action">What to Change with On_Event?</a>
+      </div>
+    </div>
+
+
+    <div id="downloadLibrary">
+      <h4>Download Library</h4>
+      <ol>
+        <li>Download and install <a href="http://slproweb.com/download/Win64OpenSSL-1_0_2q.exe">"Win64 OpenSSL v1.0.2q"</a> (Win32 if 32-bit) from <a href="http://slproweb.com/products/Win32OpenSSL.html">http://slproweb.com/products/Win32OpenSSL.html</a></li>
+        <li>Run the installer with default - choose "The Windows system directory", and install.</li>
+        <a class="example-image-link" href="../images/pic12.png" data-lightbox="example-1" data-title=".exe of installer"><img class="example-image" src="../images/pic12.png" alt=""></a>
+        <li>After installing, the folder will be located in the root (C:\OpenSSL-Win64), important!</li>
+      </ol>
+    </div>
+
+    <div id="linkLibrary">
+      <h4>Linking Library to Visual Studio</h4>
+      <ol>
+        <li>Similar to previous linking, open Visual Studio and “Project” &rarr; “Properties”</li>
+        <li>Under “C/C++” &rarr; “General” &rarr; “Additional Include Directories” and add the library file by navigating to “C:\OpenSSL-Win64\include”</li>
+        <li>Under “Project” &rarr; “Properties”, under “Linker” &rarr; “Additional Library Directories” and add the new file “C:\OpenSSL-Win64\lib”</li>
+        <li>Under “Project” &rarr; “Properties”, under “Linker” &rarr; "Input" &rarr; “Additional Dependencies” and add "libeay32.lib" AND "ssleay32.lib"</li>
+        <li>Done!</li>
+      </ol>
+    </div>
+
+    <div id="changeCode">
+      <h4>Changes to Code</h4>
+      <ol>
+        <li><code>typedef websocketpp::client&ltwebsocketpp::config::asio_client&gt client;</code><br>to <br>
+          <code>
+            typedef websocketpp::client&ltwebsocketpp::config::asio_tls_client&gt client;<br>
+            typedef std::shared_ptr&ltboost::asio::ssl::context&gt context_ptr;<br>
+            typedef websocketpp::config::asio_client::message_type::ptr message_ptr;<br>
+          </code>
+        </li>
+        <li>Add: <br>
+          <code>static context_ptr on_tls_init()<br>
+            {<br>
+              // establishes a SSL connection <br>
+              context_ptr ctx = std::make_shared&ltboost::asio::ssl::context&gt(boost::asio::ssl::context::sslv23);<br>
+              try {<br>
+                ctx-&gtset_options(boost::asio::ssl::context::default_workarounds |<br>
+                boost::asio::ssl::context::no_sslv2 |<br>
+                boost::asio::ssl::context::no_sslv3 |<br>
+                boost::asio::ssl::context::single_dh_use);<br>
+              }<br>
+              catch (std::exception &e) {<br>
+                std::cout &lt&lt "Error in context pointer: " &lt&lt e.what() &lt&lt std::endl;<br>
+              }<br>
+              return ctx;<br>
+            }
+          </code></li>
+          <li>After <code>m_client.init_asio();</code> Add: <br>
+            <code>m_client.set_tls_init_handler(bind(&on_tls_init));</code>
+          </ol>
+        </div>
+
+
+        <div id="how2connect">
+          <h4>How to Connect to Server</h4>
+          <ol>
+            <li>Instead of uri being "ws://localhost:portnumber" change to "wss://uriname:portnumber"</li>
+            </ol>
+          </div>
+
+          <div id="onEvent">
+            <h4>What to Change with On_Event?</h4>
+            <p class="text-justify">Simplest Answer? Nothing.
+              <br>Long answer? Based on your requirement. Simply put it, based on what your server is doing and what is required with the client.
+            </p>
+            </div>
+
+
+            <!-- CONTENT -->
+
+
+        </div>
+        <!-- Footer -->
+        <footer class="page-footer font-small blue pt-4">
+
+          <!-- Footer Links -->
+          <div class="container-fluid text-center text-md-left">
+
+            <!-- Grid row -->
+            <div class="row">
+              <div class="col-sm-12"><p class="text-left">By: ChiggyXD</p></div>
+            </div>
+            <!-- Grid row -->
+
+          </div>
+          <!-- Footer Links -->
+
+          <!-- Copyright -->
+          <div class="footer-copyright text-center py-3">© 2018 Copyright:
+            <a href="#">PLACEHOLDER</a>
+          </div>
+          <!-- Copyright -->
+
+        </footer>
+        <!-- Footer -->
+
+        <script src="../lightbox2-master/dist/js/lightbox-plus-jquery.min.js"></script>
+
+
+      </body>
+      </html>

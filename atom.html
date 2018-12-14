@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Learning Server-Client Setup</title>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+  <!-- jQuery library -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  <!-- Popper JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+
+  <!-- Latest compiled JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+  <link rel="stylesheet" href="lightbox2-master/dist/css/lightbox.min.css">
+
+  <!-- Image resizing -->
+  <style>
+  img {
+    width: 50%;
+    height: auto;
+  }
+  </style>
+
+</head>
+<body>
+  <div class="container-fluid">
+    <h1>Server-Client Communication</h1>
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" href="index.html">HOME</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">SERVER</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="serverTutorial/pt1.html">Explanation</a>
+          <a class="dropdown-item" href="serverTutorial/pt2.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">CLIENT</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="clientTutorial/pt1.html">Libraries</a>
+          <a class="dropdown-item" href="clientTutorial/pt2.html">Global Variables</a>
+          <a class="dropdown-item" href="clientTutorial/pt3.html">Functions</a>
+          <a class="dropdown-item" href="clientTutorial/pt4.html">Classes</a>
+          <a class="dropdown-item" href="clientTutorial/pt5.html">Main</a>
+          <a class="dropdown-item" href="clientTutorial/pt6.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="atom.html">Atom IDE</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">TLS CLIENT</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="tlsTutorial/pt1.html">Walkthrough</a>
+          <a class="dropdown-item" href="tlsTutorial/pt2.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">VS Library Usage</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="library/pt1/pt1.html">Zaphoyd Websocketpp</a>
+          <a class="dropdown-item" href="library/pt2/pt1.html">Nlohmann JSON</a>
+        </div>
+      </li>
+    </ul>
+
+    <!-- CONTENT -->
+    <h2>Getting Started on Atom</h2>
+
+    <h3>Download & Install</h3>
+    <div id="setupAtom">
+      <ol>
+        <li>Download and install Atom from <a href="https://atom.io/">https://atom.io/</a></li>
+        <li>After running the installer, it will automatically launch and done! Ready to code.</li>
+      </ol>
+    </div>
+
+
+    <h3>Creating New Project</h3>
+    <div id="setupJSProject">
+      <ol>
+        <li>Create a project folder in an accessible directory. Go to atom "File" &rarr; "Open Folder..." &rarr; select the directory of project folder,
+          and it will open the folder in atom to be work on, similar to visual studio "Solution Explorer".</li>
+        <li>Right-click on the directory and select "New File". Name the file and add an extension behind such as .js, .json, .html</li>
+        <li>Begin writing code!</li>
+      </ol>
+      <p class="text-info"><strong>Extra tip: </strong>By installing <a href="#setupPlug">"platformio-ide-terminal"</a> as additional plugin in Atom,
+        you can run javascript without running command prompt and navigating to the directory.</p>
+    </div>
+
+    <h3>platformio-ide-terminal</h3>
+    <div id="setupPlug">
+      <ol>
+        <li>Go to "File" &rarr; "Settings" &rarr; "Install" &rarr; Search "platformio-ide-terminal" &rarr; Install</li>
+        <li>Once installed, look at the botoom left for a "+" symbol and click it to launch.</li>
+        <a class="example-image-link" href="images/pic11.png" data-lightbox="example-1" data-title="terminal of the plugin"><img class="example-image" src="images/pic11.png" alt=""></a>
+        <li>It should open to your working directory, if not - manually navigate to it.</li>
+      </ol>
+    </div>
+
+
+    <!-- CONTENT -->
+
+
+
+  </div>
+  <!-- Footer -->
+  <footer class="page-footer font-small blue pt-4">
+
+    <!-- Footer Links -->
+    <div class="container-fluid text-center text-md-left">
+
+      <!-- Grid row -->
+      <div class="row">
+        <div class="col-sm-12"><p class="text-left">By: ChiggyXD</p></div>
+      </div>
+      <!-- Grid row -->
+
+    </div>
+    <!-- Footer Links -->
+
+    <!-- Copyright -->
+    <div class="footer-copyright text-center py-3">© 2018 Copyright:
+      <a href="#">PLACEHOLDER</a>
+    </div>
+    <!-- Copyright -->
+
+  </footer>
+  <!-- Footer -->
+
+  <script src="lightbox2-master/dist/js/lightbox-plus-jquery.min.js"></script>
+
+
+</body>
+</html>

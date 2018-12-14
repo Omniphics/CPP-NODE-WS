@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Learning Server-Client Setup</title>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+  <!-- jQuery library -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  <!-- Popper JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+
+  <!-- Latest compiled JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+</head>
+<body>
+  <div class="container-fluid">
+    <h1>Server-Client Communication</h1>
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link" href="../index.html">HOME</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle active" data-toggle="dropdown" href="#">SERVER</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../serverTutorial/pt1.html">Explanation</a>
+          <a class="dropdown-item" href="../serverTutorial/pt2.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">CLIENT</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../clientTutorial/pt1.html">Libraries</a>
+          <a class="dropdown-item" href="../clientTutorial/pt2.html">Global Variables</a>
+          <a class="dropdown-item" href="../clientTutorial/pt3.html">Functions</a>
+          <a class="dropdown-item" href="../clientTutorial/pt4.html">Classes</a>
+          <a class="dropdown-item" href="../clientTutorial/pt5.html">Main</a>
+          <a class="dropdown-item" href="../clientTutorial/pt6.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="../atom.html">Atom IDE</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">TLS CLIENT</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../tlsTutorial/pt1.html">Walkthrough</a>
+          <a class="dropdown-item" href="../tlsTutorial/pt2.html">Source Code</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">VS Library Usage</a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../library/pt1/pt1.html">Zaphoyd Websocketpp</a>
+          <a class="dropdown-item" href="../library/pt2/pt1.html">Nlohmann JSON</a>
+        </div>
+      </li>
+    </ul>
+
+    <!-- CONTENT -->
+    <h2>Node.js Server</h2>
+
+    <h3>WS Library</h3>
+    <div>
+      <h4>Example</h4>
+      <code>
+        <pre>
+          // required libraries ---------------------------------------------------------
+          const WebSocket = require('ws');
+          global.atob = require("atob");
+        </pre>
+      </code>
+      <p>This will allow the script to start using ws library for server-client communication</p>
+    </div>
+
+
+    <h3>Global Variables</h3>
+    <div>
+      <h4>Example</h4>
+      <code>
+        <pre>
+          // global variables -----------------------------------------------------------
+          const wss = new WebSocket.Server({ port: 40510 }); // set server port
+          var id = 0; // number of user and for unique id indexing
+          var CLIENTS = []; // store client information for communication
+          var left = []; // record clients who left the server
+          var registered = []; // record clients who successfully registered in the client
+        </pre>
+      </code>
+      <p>Global variables allow the program to keep track on client entering and leaving the server to properly push message to online clients</p>
+    </div>
+
+    <h3>Settings</h3>
+    <div>
+      <h4>Example</h4>
+      <code>
+        <pre>
+          // setting --------------------------------------------------------------------
+          // could be loaded with json if desired - currently it's fixed
+          var timer = 5000; // timer in ms
+        </pre>
+      </code>
+      <p>Setting can be loading in with a json file but currently it is set to default of 5000ms or 5s interval for repeating the pinging to clients</p>
+    </div>
+
+    <h3>On-Connection & On-Event Handler</h3>
+    <div>
+      <h4>Example</h4>
+      <code>
+        <pre>
+          // if new client connect ------------------------------------------------------
+          wss.on('connection', function connection(ws) {
+
+            // setting up clients -------------------------------------------------------
+            // console message
+            console.log(">> connection established by id:" + id);
+            // store client variables
+            CLIENTS.push(ws);
+            registered.push(false);
+            // console message all clients of new client
+            for( var i = 0, cLength = CLIENTS.length; i < cLength; i++) {
+              var tagged = false; // initial with false as not offline
+              for(var j = 0, leftLenght = left.length; j < leftLenght; j++){
+                if(i == left[j]){
+                  tagged = true; // client is offline - closed
+                }
+              }
+              if(!tagged){ // console message of new client if client is online - connected
+                if(CLIENTS[i] != ws){
+                  fnSendMessage(  JSON.stringify({
+                    action: 'NEW',
+                    id: id
+                  }), 'NEW', CLIENTS[i]);
+                }
+              }
+            }
+
+            // PING PONG ----------------------------------------------------------------
+            ws.isAlive = true;
+            // event hanlder ------------------------------------------------------------
+            // replying to clients ping - does not require additional pong() as it will automatically call when ping event is heard
+            ws.on('ping', function incoming(message) {
+              console.log('>> SERVER PINGED: ' + message);
+              console.log('\t<< PONG')
+            });
+            // waiting for pong from client
+            ws.on('pong', function incoming(message){ //
+              this.isAlive = true; // connection still available, do not disconnect/terminate
+              console.log('>> SERVER PONGED: ' + message);
+            });
+
+            // On Message Event Handler -------------------------------------------------
+            ws.on('message', function incoming(message) {
+              // console message
+              console.log('>> Message received: ');
+              // verify connection and selecting correct client to reply
+              for( var i = 0, cLength = CLIENTS.length; i < cLength; i++) {
+                var tagged = false;
+                for(var j = 0, leftLenght = left.length; j < leftLenght; j++){
+                  if(i == left[j]){
+                    tagged = true;
+                  }
+                }
+                if(!tagged){
+                  if(CLIENTS[i] == ws){
+                    // client on_open reply
+                    if(!registered[i]){
+                      var jsonText = JSON.parse(message);
+                      var decodeMsg = atob(jsonText["message"]);
+                      var jsonMessageText = JSON.parse(decodeMsg);
+                      if(jsonMessageText["action"] == 'REGISTER'){
+                        fnSendMessage(  JSON.stringify({
+                          id: id
+                        }), 'REGISTER', ws);
+                        id++
+                        registered[i] = true;
+                      }
+                    }
+                    // client on_message reply
+                    else{
+                      // verifying message
+                      var decodeMsg = atob(message);
+                      console.log(decodeMsg);
+                      var jsonMessageText = JSON.parse(decodeMsg);
+                      // action handler
+                      if (jsonMessageText["action"] == 'PING'){ // example
+                        fnSendMessage(  JSON.stringify({
+                          action: 'PONG'
+                        }), 'PONG', ws);
+                      }
+                      // additional else if for other action
+                      // ...
+                      // ...
+                    }
+                  }
+                }
+              }
+            });
+
+            // On Close Event Handler
+            ws.on('close', function(){
+              for( var i = 0, cLength = CLIENTS.length; i < cLength; i++) {
+                if(CLIENTS[i] == ws){
+                  left.push(i);
+                  id_left = i;
+                  console.log('user ' + i + ' left abruptedly');
+                }
+                var tagged = false;
+                for(var j = 0, leftLenght = left.length; j < leftLenght; j++){
+                  if(i == left[j]){
+                    tagged = true;
+                  }
+                }
+                if(!tagged){
+                  if(CLIENTS[i] != ws ){
+                    fnSendMessage(  JSON.stringify({
+                      action: 'EXIT',
+                      id: i
+                    }), 'EXIT', CLIENTS[i]);
+                  }
+                }
+              }
+            });
+          });
+        </code>
+      </pre>
+        <p>The main section that handles client connecting to server and event by the client such as message, ping, etc</p>
+      </div>
+
+      <h3>Additional Functions</h3>
+      <div>
+        <h4>Example</h4>
+        <code>
+          <pre>
+            // sending message to specific client with intent (action)
+            function fnSendMessage(message, action, ws){
+              // find client id
+              var id = -1
+              for( var i = 0, cLength = CLIENTS.length; i < cLength; i++) {
+                if(ws == CLIENTS[i]){
+                  id = i;
+                }
+              }
+              if(action) console.log('<< sending ' + action + ' to id: ' + id);
+              message = EncodeMessage(message);
+              ws.send(message);
+              return false;
+            }
+
+            // De/Encryption Base64 Standard
+            function EncodeMessage(message){
+              return new Buffer(message).toString('base64');
+            }
+            function DecodeMessage(message){
+              return new Buffer(message, "base64").toString('utf8');
+            }
+          </pre>
+        </code>
+        <p>Additional functions are created to be used repeatedly through the program</p>
+      </div>
+
+      <h3>Main Functions</h3>
+      <div>
+        <h4>Example</h4>
+        <code>
+          <pre>
+            // main function to be run all time
+            // server pinging all clients until server closes - waiting for pong within time frame before timing out
+            const interval = setInterval(function ping() {
+              // WIP: refactoring
+              for( var i = 0, cLength = CLIENTS.length; i < cLength; i++) {
+                var disconnected = false;
+                // which client is disconnected?
+                for(var y = 0, leftLength = left.length; y < leftLength; y++){
+                  if(i == left[y]){
+                    disconnected = true;
+                  }
+                }
+                if(!disconnected){
+                  if (CLIENTS[i].isAlive === false){
+                    // isit disconnected?
+                    disconnected = false;
+                    for(var indexLeft = 0, leftLength = left.length; indexLeft < leftLength; indexLeft++){
+                      if(i == left[indexLeft]){
+                        disconnected = true;
+                      }
+                    }
+                    // if not disconnected, disconnect it
+                    if(!disconnected){
+                      // alert to self and everyone that is online
+                      for( var x = 0, cLength = CLIENTS.length; x < cLength; x++) {
+                        disconnected = false;
+                        for(var indexLeft = 0, leftLength = left.length; indexLeft < leftLength; indexLeft++){
+                          if(x == left[indexLeft]){
+                            disconnected = true;
+                          }
+                        }
+                        if(!disconnected){
+                          fnSendMessage(  JSON.stringify({
+                            action: 'EXIT',
+                            id: i
+                          }), 'EXIT', CLIENTS[x]);
+                        }
+                      }
+                      left.push(i);
+                      console.log('>> user ' + i + ' could not be reached');
+                    }
+                  }
+                  disconnect = false;
+                  for(var indexLeft = 0, leftLength = left.length; indexLeft < leftLength; indexLeft++){
+                    if(i == left[indexLeft]){
+                      disconnect = true;
+                    }
+                  }
+                  if(!disconnect){
+                    CLIENTS[i].isAlive = false;
+                    CLIENTS[i].ping(); // client will AUTOMATICALLY PONG - regardless if it exists or not thus pong handler is required
+                    console.log('<< PING to id: ' + i);
+                  }
+                }
+              }
+            }, 5000); // set interval level in ms
+          </pre>
+        </code>
+        <p>Main script to run ping constantly to check if client is still connected to the server. Similar to client-side sending ping to check connection.</p>
+      </div>
+
+      <!-- CONTENT -->
+
+    </div>
+    <!-- Footer -->
+    <footer class="page-footer font-small blue pt-4">
+
+      <!-- Footer Links -->
+      <div class="container-fluid text-center text-md-left">
+
+        <!-- Grid row -->
+        <div class="row">
+          <div class="col-sm-12"><p class="text-left">By: Chiggy XD</p></div>
+        </div>
+        <!-- Grid row -->
+
+      </div>
+      <!-- Footer Links -->
+
+      <!-- Copyright -->
+      <div class="footer-copyright text-center py-3">© 2018 Copyright:
+        <a href="#">PLACEHOLDER</a>
+      </div>
+      <!-- Copyright -->
+
+    </footer>
+    <!-- Footer -->
+
+  </body>
+  </html>
