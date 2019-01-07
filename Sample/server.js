@@ -1,0 +1,214 @@
+// required libraries ---------------------------------------------------------
+const WebSocket = require('ws');
+global.atob = require("atob");
+
+// global variables -----------------------------------------------------------
+const wss = new WebSocket.Server({ port: 40510 }); // set server port
+var id = 0; // number of user and for unique id indexing
+var CLIENTS = []; // store client information for communication
+var left = []; // record clients who left the server
+var registered = []; // record clients who successfully registered in the client
+
+// setting --------------------------------------------------------------------
+// could be loaded with json if desired - currently it's fixed
+var timer = 5000; // timer in ms
+
+// console message
+console.log('>> Server ready to go... waiting for new clients');
+
+// if new client connect ------------------------------------------------------
+wss.on('connection', function connection(ws) {
+
+  // setting up clients -------------------------------------------------------
+  // console message
+  console.log(">> connection established by id:" + id);
+  // store client variables
+  CLIENTS.push(ws);
+  registered.push(false);
+  // console message all clients of new client
+  for( var i = 0, cLength = CLIENTS.length; i < cLength; i++) {
+    var tagged = false; // initial with false as not offline
+    for(var j = 0, leftLenght = left.length; j < leftLenght; j++){
+      if(i == left[j]){
+        tagged = true; // client is offline - closed
+      }
+    }
+    if(!tagged){ // console message of new client if client is online - connected
+      if(CLIENTS[i] != ws){
+        fnSendMessage(  JSON.stringify({
+          action: 'NEW',
+          id: id
+        }), 'NEW', CLIENTS[i]);
+      }
+    }
+  }
+
+  // PING PONG ----------------------------------------------------------------
+  ws.isAlive = true;
+  // event hanlder ------------------------------------------------------------
+  // replying to clients ping - does not require additional pong() as it will automatically call when ping event is heard
+  ws.on('ping', function incoming(message) {
+    console.log('>> SERVER PINGED: ' + message);
+    console.log('\t<< PONG')
+  });
+  // waiting for pong from client
+  ws.on('pong', function incoming(message){ //
+    this.isAlive = true; // connection still available, do not disconnect/terminate
+    console.log('>> SERVER PONGED: ' + message);
+  });
+
+  // On Message Event Handler -------------------------------------------------
+  ws.on('message', function incoming(message) {
+    // console message
+    console.log('>> Message received: ');
+    // verify connection and selecting correct client to reply
+    for( var i = 0, cLength = CLIENTS.length; i < cLength; i++) {
+      var tagged = false;
+      for(var j = 0, leftLenght = left.length; j < leftLenght; j++){
+        if(i == left[j]){
+          tagged = true;
+        }
+      }
+      if(!tagged){
+        if(CLIENTS[i] == ws){
+          // client on_open reply
+          if(!registered[i]){
+            var jsonText = JSON.parse(message);
+            var decodeMsg = atob(jsonText["message"]);
+            var jsonMessageText = JSON.parse(decodeMsg);
+            if(jsonMessageText["action"] == 'REGISTER'){
+              fnSendMessage(  JSON.stringify({
+                id: id
+              }), 'REGISTER', ws);
+              id++
+              registered[i] = true;
+            }
+          }
+          // client on_message reply
+          else{
+            // verifying message
+            var decodeMsg = atob(message);
+            console.log(decodeMsg);
+            var jsonMessageText = JSON.parse(decodeMsg);
+            // action handler
+            if (jsonMessageText["action"] == 'PING'){ // example
+              fnSendMessage(  JSON.stringify({
+                action: 'PONG'
+              }), 'PONG', ws);
+            }
+            // additional else if for other action
+            // ...
+            // ...
+          }
+        }
+      }
+    }
+  });
+
+  // On Close Event Handler
+  ws.on('close', function(){
+    for( var i = 0, cLength = CLIENTS.length; i < cLength; i++) {
+      if(CLIENTS[i] == ws){
+        left.push(i);
+        id_left = i;
+        console.log('user ' + i + ' left abruptedly');
+      }
+      var tagged = false;
+      for(var j = 0, leftLenght = left.length; j < leftLenght; j++){
+        if(i == left[j]){
+          tagged = true;
+        }
+      }
+      if(!tagged){
+        if(CLIENTS[i] != ws ){
+          fnSendMessage(  JSON.stringify({
+            action: 'EXIT',
+            id: i
+          }), 'EXIT', CLIENTS[i]);
+        }
+      }
+    }
+  });
+});
+
+// sending message to specific client with intent (action)
+function fnSendMessage(message, action, ws){
+  // find client id
+  var id = -1
+  for( var i = 0, cLength = CLIENTS.length; i < cLength; i++) {
+    if(ws == CLIENTS[i]){
+      id = i;
+    }
+  }
+  if(action) console.log('<< sending ' + action + ' to id: ' + id);
+  message = EncodeMessage(message);
+  ws.send(message);
+  return false;
+}
+
+// De/Encryption Base64 Standard
+function EncodeMessage(message){
+  return new Buffer(message).toString('base64');
+}
+function DecodeMessage(message){
+  return new Buffer(message, "base64").toString('utf8');
+}
+
+
+
+// main function to be run all time
+// server pinging all clients until server closes - waiting for pong within time frame before timing out
+const interval = setInterval(function ping() {
+  // WIP: refactoring
+  for( var i = 0, cLength = CLIENTS.length; i < cLength; i++) {
+    var disconnected = false;
+    // which client is disconnected?
+    for(var y = 0, leftLength = left.length; y < leftLength; y++){
+      if(i == left[y]){
+        disconnected = true;
+       }
+    }
+    if(!disconnected){
+      if (CLIENTS[i].isAlive === false){
+        // isit disconnected?
+        disconnected = false;
+        for(var indexLeft = 0, leftLength = left.length; indexLeft < leftLength; indexLeft++){
+          if(i == left[indexLeft]){
+            disconnected = true;
+          }
+        }
+        // if not disconnected, disconnect it
+        if(!disconnected){
+          // alert to self and everyone that is online
+          for( var x = 0, cLength = CLIENTS.length; x < cLength; x++) {
+            disconnected = false;
+            for(var indexLeft = 0, leftLength = left.length; indexLeft < leftLength; indexLeft++){
+              if(x == left[indexLeft]){
+                disconnected = true;
+              }
+            }
+            if(!disconnected){
+              fnSendMessage(  JSON.stringify({
+                action: 'EXIT',
+                id: i
+              }), 'EXIT', CLIENTS[x]);
+            }
+          }
+          left.push(i);
+          console.log('>> user ' + i + ' could not be reached');
+        }
+      }
+      disconnect = false;
+      for(var indexLeft = 0, leftLength = left.length; indexLeft < leftLength; indexLeft++){
+        if(i == left[indexLeft]){
+          disconnect = true;
+        }
+      }
+      if(!disconnect){
+        CLIENTS[i].isAlive = false;
+        CLIENTS[i].ping(); // client will AUTOMATICALLY PONG - regardless if it exists or not thus pong handler is required
+        console.log('<< PING to id: ' + i);
+      }
+    }
+  }
+}, 5000); // set interval level in ms
